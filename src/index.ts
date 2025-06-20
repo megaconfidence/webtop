@@ -1,7 +1,7 @@
 import { Container, getContainer, loadBalance } from '@cloudflare/containers';
 
 export class Webtop extends Container {
-	defaultPort = 3000;
+	defaultPort = 6901;
 	sleepAfter = '15m';
 	override onStart() {
 		console.log('Container successfully started');

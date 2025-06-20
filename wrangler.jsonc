@@ -14,6 +14,7 @@
 			"class_name": "Webtop",
 			"image": "./Dockerfile",
 			"configuration": {
+				"vcpu": 2,
 				"disk": { "size": "4GB" },
 			},
 		},

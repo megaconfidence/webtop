@@ -1,48 +1,64 @@
-FROM ghcr.io/linuxserver/baseimage-selkies:alpine322
+FROM debian:11.1-slim
 
-# set version label
-ARG BUILD_DATE
-ARG VERSION
-ARG XFCE_VERSION
-LABEL build_version="Linuxserver.io version:- ${VERSION} Build-date:- ${BUILD_DATE}"
-LABEL maintainer="thelamer"
+ENV DISPLAY=:1 \
+    VNC_PORT=5901 \
+    NO_VNC_PORT=6901 \
+    VNC_COL_DEPTH=32 \
+    VNC_RESOLUTION=1920x1080
 
-# title
-ENV TITLE="Alpine XFCE"
+# No interactive frontend during docker build
+ENV DEBIAN_FRONTEND=noninteractive
 
-RUN \
-  echo "**** add icon ****" && \
-  curl -o \
-    /usr/share/selkies/www/icon.png \
-    https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/webtop-logo.png && \
-  echo "**** install packages ****" && \
-  apk add --no-cache \
-    adw-gtk3 \
-    adwaita-xfce-icon-theme \
-    chromium \
-    mousepad \
-    ristretto \
-    thunar \
-    util-linux-misc \
-    xfce4 \
-    xfce4-terminal && \
-  echo "**** xfce-tweaks ****" && \
-  mv \
-    /usr/bin/thunar \
-    /usr/bin/thunar-real && \
-  echo "**** cleanup ****" && \
-  rm -f \
-    /etc/xdg/autostart/xfce4-power-manager.desktop \
-    /etc/xdg/autostart/xscreensaver.desktop \
-    /usr/share/xfce4/panel/plugins/power-manager-plugin.desktop && \
-  rm -rf \
-    /config/.cache \
-    /tmp/*
 
-# add local files
-COPY /docker-webtop/root /
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y \
+    xvfb xauth dbus-x11 xfce4 xfce4-terminal \
+    wget sudo curl gpg git bzip2 vim procps python x11-xserver-utils \
+    libnss3 libnspr4 libasound2 libgbm1 ca-certificates fonts-liberation xdg-utils \
+    tigervnc-standalone-server tigervnc-common firefox-esr; \
+    curl http://ftp.us.debian.org/debian/pool/main/liba/libappindicator/libappindicator3-1_0.4.92-7_amd64.deb --output /opt/libappindicator3-1_0.4.92-7_amd64.deb && \
+    curl http://ftp.us.debian.org/debian/pool/main/libi/libindicator/libindicator3-7_0.5.0-4_amd64.deb --output /opt/libindicator3-7_0.5.0-4_amd64.deb && \
+    apt-get install -y /opt/libappindicator3-1_0.4.92-7_amd64.deb /opt/libindicator3-7_0.5.0-4_amd64.deb; \
+    rm -vf /opt/lib*.deb; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# ports and volumes
-EXPOSE 3000
 
-VOLUME /config
+ENV TERM xterm
+# Install NOVNC.
+RUN apt-get update && apt-get install -y git
+RUN git clone --branch v1.6.0 --single-branch https://github.com/novnc/noVNC.git /opt/noVNC && \
+    git clone --branch v0.13.0 --single-branch https://github.com/novnc/websockify.git /opt/noVNC/utils/websockify && \
+    ln -s /opt/noVNC/vnc.html /opt/noVNC/index.html && \
+    chmod +x /opt/noVNC/utils/novnc_proxy
+
+# disable shared memory X11 affecting Chromium
+ENV QT_X11_NO_MITSHM=1 \
+    _X11_NO_MITSHM=1 \
+    _MITSHM=0
+
+
+# give every user read write access to the "/root" folder where the binary is cached
+RUN ls -la /root
+RUN chmod 777 /root && mkdir /src
+
+RUN groupadd -g 61000 dockeruser; \
+    useradd -g 61000 -l -m -s /bin/bash -u 61000 dockeruser
+
+COPY /webtop/assets/config/ /home/dockeruser/.config
+
+RUN chown -R dockeruser:dockeruser /home/dockeruser;\
+    chmod -R 777 /home/dockeruser ;\
+    adduser dockeruser sudo;\
+    echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+USER dockeruser
+# versions of local tools
+RUN echo  "debian version:  $(cat /etc/debian_version) \n" \
+          "user:            $(whoami) \n"
+
+COPY /webtop/scripts/entrypoint.sh /src
+
+#Expose port 5901 to view display using VNC Viewer
+EXPOSE 6901
+ENTRYPOINT ["/src/entrypoint.sh"]
