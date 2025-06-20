@@ -1,3 +1,4 @@
+# CREDITS: https://github.com/piopi/docker-desktop
 FROM debian:11.1-slim
 
 ENV DISPLAY=:1 \
