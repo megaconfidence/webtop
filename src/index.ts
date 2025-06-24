@@ -1,4 +1,4 @@
-import { Container, getContainer } from '@cloudflare/containers';
+import { Container, getContainer, loadBalance } from '@cloudflare/containers';
 
 export class Webtop extends Container {
 	defaultPort = 6901;
@@ -18,6 +18,8 @@ export class Webtop extends Container {
 
 export default {
 	async fetch(request: Request, env): Promise<Response> {
-		return await getContainer(env.WEBTOP).fetch(request);
+		// return await getContainer(env.WEBTOP).fetch(request);
+		let container = await loadBalance(env.WEBTOP, 20);
+		return await container.fetch(request);
 	},
 } satisfies ExportedHandler<Env>;

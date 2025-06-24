@@ -9,7 +9,7 @@
 	"compatibility_date": "2025-06-19",
 	"containers": [
 		{
-			"max_instances": 1,
+			"max_instances": 20,
 			"name": "webtop",
 			"class_name": "Webtop",
 			"image": "./Dockerfile",
