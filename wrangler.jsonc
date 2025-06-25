@@ -13,10 +13,7 @@
 			"name": "webtop",
 			"class_name": "Webtop",
 			"image": "./Dockerfile",
-			"configuration": {
-				"vcpu": 2,
-				"disk": { "size": "4GB" },
-			},
+			"instance_type": "standard",
 		},
 	],
 	"migrations": [
