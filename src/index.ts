@@ -19,7 +19,7 @@ export class Webtop extends Container {
 export default {
 	async fetch(request: Request, env): Promise<Response> {
 		// return await getContainer(env.WEBTOP).fetch(request);
-		let container = await loadBalance(env.WEBTOP, 20);
+		let container = await loadBalance(env.WEBTOP, 10);
 		return await container.fetch(request);
 	},
 } satisfies ExportedHandler<Env>;
