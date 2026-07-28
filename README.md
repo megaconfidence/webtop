@@ -1,7 +1,7 @@
 # webtop
 Run a full Linux desktop on the web (powered by [Cloudflare Containers](https://developers.cloudflare.com/containers/))
 
-[🚀 Live Demo 🚀](https://webtop.conflare.workers.dev/)
+[🚀 Live Demo 🚀](https://webtop.conflaree.workers.dev/)
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/megaconfidence/webtop)
 
